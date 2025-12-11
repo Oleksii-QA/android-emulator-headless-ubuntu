@@ -1,9 +1,9 @@
 # Practices for installing and running an Android emulator in headless mode on Ubuntu servers
 
-REFERENCES:
-https://gist.github.com/Abyss-W4tcher/f1833623c975193446315d48c106750e
-https://gist.github.com/atyachin/2f7c6054c4cd6945397165a23623987d
-https://gist.github.com/nhtua/2d294f276dc1e110a7ac14d69c37904f
+### REFERENCES:
+- https://gist.github.com/Abyss-W4tcher/f1833623c975193446315d48c106750e
+- https://gist.github.com/atyachin/2f7c6054c4cd6945397165a23623987d
+- https://gist.github.com/nhtua/2d294f276dc1e110a7ac14d69c37904f
 
 # AArch64 Android emulation and kernel cross-compilation
 
