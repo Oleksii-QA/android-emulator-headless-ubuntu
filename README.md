@@ -72,6 +72,7 @@ avdmanager delete avd -n my_avd
 ```
 
 # Run a Headless Android Device on Ubuntu server (no GUI) 
+
 ```sh
 #!/bin/bash -i
 #using shebang with -i to enable interactive mode (auto load .bashrc)
@@ -127,4 +128,63 @@ emulator -avd avd28 -no-audio -no-window &
 
 # show connected virtual device
 adb devices
+```
+
+# Running headless android emulator on AWS EC2 Ubuntu instance (ARM64 / aarch64)
+
+```sh
+Android Emulator (ARM64) on EC2 - 2022
+---------------------------------------
+1. Launch EC2 ARM based Instance (a1.metal / a1.2xlarge): (16 Gb RAM, 32Gb Disk), Ubuntu Server 22.04 LTS (HVM) ARM x64
+2. sudo apt update && sudo apt upgrade
+3. sudo apt install default-jdk python3-pip repo python-is-python3 unzip libpcre2-dev adb
+4. wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip 
+5. unzip commandlinetools-linux-8512546_latest.zip -d android-sdk
+6. sudo mv android-sdk /opt/
+7. mkdir /opt/android-sdk/cmdline-tools/latest
+8. mv /opt/android-sdk/cmdline-tools/* /opt/android-sdk/cmdline-tools/latest  (ignore the error)
+9. at this point you should have sdkmanager and avdmanager under /opt/android-sdk/cmdline-tools/latest/bin/
+10. echo "export ANDROID_SDK_ROOT=/opt/android-sdk" >> ~/.bashrc
+11. echo "export ANDROID_HOME=/opt/android-sdk" >> ~/.bashrc
+12. echo "export ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL=60" >> ~/.bashrc
+13. echo "export PATH=$PATH:/opt/android-sdk/cmdline-tools/latest/bin" >> ~/.bashrc
+14. source ~/.bashrc
+15. sdkmanager --update
+16. sdkmanager --licenses
+17. cd /opt/android-sdk/
+18. Get emulator download link: 
+- https://ci.android.com/builds/branches/aosp-emu-master-dev/grid?
+- column: emulator --> linux_aarch64
+- click a green version
+- click Artifacts tab
+- click sdk-repo-linux_aarch64-emulator-[build number].zip  (~1.6Gb)
+- Right-click the Download link (blue) and copy the download URL
+- A Relatively stable version (31.3.8 - 5/24/2022): https://ci.android.com/builds/submitted/8632828/emulator-linux_aarch64/latest/sdk-repo-linux_aarch64-emulator-8632828.zip
+19 wget -O emulator.zip "[download URL]" 
+20. unzip emulator.zip
+21. cd emulator
+22. copy text from https://chromium.googlesource.com/android_tools/+/refs/heads/master/sdk/emulator/package.xml
+23. nano /opt/android-sdk/emulator/package.xml --> paste copied text
+24. cat source.properties --> get Emulator version number from Pkg.Revision (Example: Pkg.Revision=31.3.9)
+25. update the following params in package.xml according to the version: <major>, <minor>, <micro>
+26. sdkmanager "system-images;android-31;google_apis;arm64-v8a"
+27. avdmanager -v create avd -f -n MyAVD -k "system-images;android-31;google_apis;arm64-v8a" -p "/opt/android-sdk/avd" 
+28. avdmanager list avd --> check that you have MyAVD 
+29. mkdir /opt/android-sdk/platforms
+30. mkdir /opt/android-sdk/platform-tools
+31. echo "Vulkan = off" >> ~/.android/advancedFeatures.ini
+32. echo "GLDirectMem = on" >> ~/.android/advancedFeatures.ini
+33. on Metal instance, enabled KVM access:
+- sudo gpasswd -a $USER kvm
+- logout and re-login
+- /opt/android-sdk/emulator/emulator -accel-check  --> check accel:0, KVM (version 12) is installed and usable: accel
+
+
+Run the Emulator:
+------------------
+Metal instance:
+/opt/android-sdk/emulator/emulator @MyAVD -no-window -no-audio -ports 5554,5555 -skip-adb-auth -no-boot-anim -show-kernel
+
+Non-metal instance:
+/opt/android-sdk/emulator/emulator @MyAVD -no-window -no-audio -ports 5554,5555 -skip-adb-auth -no-boot-anim -show-kernel -qemu -cpu max -machine gic-version=max
 ```
